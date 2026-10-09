@@ -13,16 +13,22 @@ WasteCollect is a waste collection management platform for residents, administra
 
 - Node.js 20 or newer and npm
 - Java 21 and Maven 3.9 or newer
-- Docker Desktop with Docker Compose
+- PostgreSQL 16 (a local Windows installation is supported)
 
 ## Local setup
 
-1. Copy `.env.example` to `.env` and review the local values.
-2. Start PostgreSQL:
+1. Open PowerShell and prepare the local PostgreSQL role and database:
 
    ```powershell
-   docker compose -f infrastructure/docker-compose.yml up -d postgres
+   .\scripts\setup-local-postgres.ps1
    ```
+
+   Enter the local PostgreSQL administrator password when prompted. The script creates or repairs
+   only the project-specific role and database; it does not change PostgreSQL authentication
+   rules or stop the service.
+
+2. If you override the defaults, set the matching `DATABASE_URL`, `DATABASE_USERNAME`, and
+   `DATABASE_PASSWORD` environment variables shown in `.env.example`.
 
 3. Start the backend:
 
