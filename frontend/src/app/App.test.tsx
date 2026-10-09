@@ -59,3 +59,12 @@ test("renders the M2 sign-in form", () => {
   expect(screen.getByLabelText("Email address")).toHaveAttribute("type", "email");
   expect(screen.getByLabelText("Password")).toHaveAttribute("type", "password");
 });
+
+test.each(["GROUPED", "SCHEDULED"])("does not offer resident cancellation for a %s request", async (status) => {
+  sessionStorage.setItem("wastecollect.tokens", JSON.stringify({ accessToken: "access", refreshToken: "refresh" }));
+  sessionStorage.setItem("wastecollect.role", "RESIDENT");
+  vi.stubGlobal("fetch", vi.fn(async (input: RequestInfo | URL) => new Response(JSON.stringify(String(input).endsWith("/history") ? [] : { id: "request-1", publicCode: "WC-TEST", status, categoryName: "General waste", zoneName: "Central Zone", quantity: 1, unit: "BAG", address: "12 Test Road", preferredDate: "2026-11-10" }), { status: 200, headers: { "Content-Type": "application/json" } })));
+  render(<MemoryRouter initialEntries={["/requests/request-1"]}><App /></MemoryRouter>);
+  expect(await screen.findByRole("heading", { name: "WC-TEST" })).toBeInTheDocument();
+  expect(screen.queryByRole("button", { name: "Cancel request" })).not.toBeInTheDocument();
+});

@@ -2,6 +2,10 @@
 
 WasteCollect is a waste collection management platform for residents, administrators, and collectors.
 
+Implemented through M5: resident requests and tracking, administrator grouping, scheduling/rescheduling,
+collector creation and assignment/reassignment, searchable operational lists, dashboard metrics,
+audit history, and persistent operational settings. Collector work execution is the next milestone (M6).
+
 ## Repository structure
 
 - `frontend/` — React, TypeScript, and Vite application
@@ -51,6 +55,19 @@ WasteCollect is a waste collection management platform for residents, administra
 5. Open `http://localhost:5173`.
 6. Check backend health at `http://localhost:8080/actuator/health`.
 
+## Administrator workflow
+
+Sign in with a provisioned administrator account to open `/admin`. Use Requests to inspect resident
+requests, Grouping to confirm zone/date suggestions, and Scheduling to set collection windows and
+assign collectors. Collector accounts are created in Collectors; assignment conflicts are validated
+before saving. Settings controls group size and scheduling notice. Audit history records operational
+changes and each group preserves its previous assignments.
+
+Local development and CI use native PostgreSQL. Backend startup applies Flyway migrations V1–V5.
+`GROUPING_MAX_REQUESTS` is a deployment ceiling (default 500); the administrator setting defaults to
+50 and cannot exceed that ceiling. Scheduling uses the service timezone `Asia/Dhaka`; the UI's time
+inputs use the browser's local timezone and send ISO timestamps with an offset.
+
 ## Quality checks
 
 ```powershell
@@ -69,4 +86,4 @@ If Maven is not installed locally, run the backend through the CI environment or
 - [Development plan](./WasteCollect_Development_Plan.md)
 - [Task list](./WasteCollect_Task_List.md)
 - [Task descriptions](./docs/task-descriptions/README.md)
-- [M1 roadmap](./docs/roadmap/IMPLEMENTATION_ROADMAP.md)
+- [Implementation roadmap](./docs/roadmap/IMPLEMENTATION_ROADMAP.md)

@@ -12,6 +12,9 @@ interface CategoryRepository extends JpaRepository<WasteCategory, UUID> { List<W
 interface PickupRequestRepository extends JpaRepository<PickupRequest, UUID> {
     List<PickupRequest> findByResidentIdOrderByCreatedAtDesc(UUID residentId);
     Optional<PickupRequest> findByIdAndResidentId(UUID id, UUID residentId);
+    @Lock(LockModeType.PESSIMISTIC_WRITE)
+    @Query("select p from PickupRequest p where p.id = :id and p.resident.id = :residentId")
+    Optional<PickupRequest> lockByIdAndResidentId(UUID id, UUID residentId);
     @Query("select p from PickupRequest p where p.status = com.wastecollect.pickup.PickupStatus.PENDING and p.preferredDate >= :today order by p.zone.name, p.preferredDate, p.createdAt")
     List<PickupRequest> findGroupingEligible(LocalDate today);
     @Lock(LockModeType.PESSIMISTIC_WRITE)

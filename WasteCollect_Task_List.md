@@ -78,15 +78,15 @@ Use this checklist as the execution backlog. Complete tasks in dependency order,
 
 ### 14.6 M5 — Scheduling and Administrator Operations
 
-- [ ] Implement administrator request and group search, filtering, sorting, and pagination.
-- [ ] Implement group scheduling, rescheduling, lifecycle transitions, and validation.
-- [ ] Implement collector management, availability checks, assignment, and reassignment.
-- [ ] Implement administrator dashboard metrics from authoritative records.
-- [ ] Implement audit history for operational changes.
-- [ ] Build administrator request, grouping, scheduling, collector, and settings views.
-- [ ] Add API, authorization, concurrency, and workflow integration tests.
-- [ ] Verify admins can organize, schedule, and assign real stored collections.
-- [ ] Verify the M5 exit gate.
+- [x] Implement administrator request and group search, filtering, sorting, and pagination.
+- [x] Implement group scheduling, rescheduling, lifecycle transitions, and validation.
+- [x] Implement collector management, availability checks, assignment, and reassignment.
+- [x] Implement administrator dashboard metrics from authoritative records.
+- [x] Implement audit history for operational changes.
+- [x] Build administrator request, grouping, scheduling, collector, and settings views.
+- [x] Add API, authorization, concurrency, and workflow integration tests.
+- [x] Verify admins can organize, schedule, and assign real stored collections.
+- [x] Verify the M5 exit gate.
 
 ### 14.7 M6 — Collector Operations and Status Tracking
 

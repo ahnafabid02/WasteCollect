@@ -32,7 +32,7 @@ app:
     access-token-minutes: ${JWT_ACCESS_TOKEN_MINUTES:15}
     refresh-token-days: ${JWT_REFRESH_TOKEN_DAYS:30}
   grouping:
-    max-requests: ${GROUPING_MAX_REQUESTS:50}
+    max-requests: ${GROUPING_MAX_REQUESTS:500}
   bootstrap:
     admin-email: ${APP_BOOTSTRAP_ADMIN_EMAIL:}
     admin-password: ${APP_BOOTSTRAP_ADMIN_PASSWORD:}

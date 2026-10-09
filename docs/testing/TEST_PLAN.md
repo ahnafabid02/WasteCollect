@@ -1,13 +1,16 @@
 # WasteCollect Test Plan
 
-## Implemented evidence through M4
+## Implemented evidence through M5
 
 - Spring integration tests cover registration, login, refresh-token rotation, logout revocation, resident ownership, request history, cancellation, administrator-only grouping, group confirmation, and collector provisioning.
 - A real PostgreSQL concurrency test runs two overlapping group confirmations and verifies exactly one active membership is committed.
-- Migration tests run Flyway through V4 against native PostgreSQL; no container runtime is required.
+- Migration tests run Flyway through V5 against native PostgreSQL; no container runtime is required.
 - Frontend lint, TypeScript checks, component tests, and production build are part of the verification gate.
 - The signed-in workspace regression test verifies profile/catalog data renders, the loading indicator clears, and rerenders do not repeat the four initial API requests.
-- Through M4, resident cancellation is limited to `PENDING` requests. Later operational cancellation and membership/count reconciliation belongs to the scheduling workflow introduced after M4.
+- Resident cancellation is limited to `PENDING` requests. M5 group cancellation releases active memberships/assignments and reconciles request status atomically.
+- `OperationsIntegrationTests` verifies schedule/reschedule/reassignment/cancellation, historical preservation, rollback on conflicts, adjacent windows, notice/cutoff validation, collector availability, settings/group-size enforcement, search/pagination/sort validation, metrics, and resident/collector denial paths.
+- `AssignmentConcurrencyTests` runs two actual concurrent PostgreSQL transactions and verifies exactly one overlapping assignment and its audit event commit. Fictional fixture rows are removed after the test.
+- Administrator component tests cover six M5 routes, populated and empty states, request details/history, schedule submission, assignment conflicts, pagination, settings saves, and error recovery. Automated tests are not a substitute for final production browser/accessibility testing.
 
 ## Test layers
 

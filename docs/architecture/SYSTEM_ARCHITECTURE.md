@@ -1,5 +1,13 @@
 # WasteCollect System Architecture
 
+## Implemented administrator operations (M5)
+
+The operations module provides administrator search, scheduling, collector assignment, metrics,
+settings, and audit reads. Explicit parameterized SQL makes group/member/collector locking and
+historical writes visible inside Spring transactions; existing identity and grouping use JPA.
+Both participate in the same PostgreSQL datasource/transaction manager. React's `features/admin`
+implements the operational pages and uses bearer authorization; backend role checks enforce access.
+
 ## Approved architecture
 
 WasteCollect uses a modular monolith:

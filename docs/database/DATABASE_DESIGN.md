@@ -23,12 +23,17 @@
 - Assignment validates collector availability and writes the assignment and audit record atomically.
 - Status changes validate the transition and append history in one transaction.
 
-## Implemented through M4
+## Implemented through M5
 
 - `V1` establishes the migration baseline, `V2` identity and sessions, `V3` request/catalog persistence, and `V4` grouping/audit persistence.
 - `uq_active_membership_per_request` is a PostgreSQL partial unique index over active memberships.
 - Group confirmation uses pessimistic request-row locking plus the database uniqueness constraint as defense in depth.
 - Group membership and request status histories are append-only; administrator confirmation also writes an audit event.
+- `V5` adds group schedule timestamps, `collector_assignments`, and singleton `operation_settings`, with scheduling/availability/audit indexes.
+- `uq_active_assignment_per_group` guarantees one current collector assignment per group. Closed rows preserve their original collector and time window.
+- Scheduling/cancellation locks the group and active member rows. Assignment/reassignment locks the group and old/new collector rows in UUID order; overlap checks run after the collector lock is acquired. All application assignment writers use this path.
+- Cancelling an upcoming group closes its assignment, deactivates memberships, appends membership/request history, returns members to `PENDING`, and writes an audit event atomically.
+- Administrator search uses parameterized SQL, allowlisted sorting, stable UUID tie-breaking, and bounded page sizes. Dashboard totals are computed from source tables.
 
 ## Retention
 

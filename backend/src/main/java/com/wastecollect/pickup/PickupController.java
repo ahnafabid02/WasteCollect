@@ -1,24 +1,29 @@
 package com.wastecollect.pickup;
 
 import com.wastecollect.auth.User;
+import com.wastecollect.operations.OperationsService;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.*;
 import org.springframework.http.*;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.transaction.annotation.Transactional;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.*;
 
 @RestController
 @RequestMapping("/api/v1")
+@Transactional(readOnly = true)
 public class PickupController {
     private final ZoneRepository zones;
     private final CategoryRepository categories;
     private final PickupRequestRepository requests;
     private final PickupStatusHistoryRepository history;
-    public PickupController(ZoneRepository zones, CategoryRepository categories, PickupRequestRepository requests, PickupStatusHistoryRepository history) {
+    private final OperationsService operations;
+    public PickupController(ZoneRepository zones, CategoryRepository categories, PickupRequestRepository requests, PickupStatusHistoryRepository history, OperationsService operations) {
         this.zones = zones; this.categories = categories; this.requests = requests; this.history = history;
+        this.operations = operations;
     }
 
     @GetMapping("/zones")
@@ -28,8 +33,9 @@ public class PickupController {
     public List<CategoryResponse> categories() { return categories.findByActiveTrueOrderByName().stream().map(c -> new CategoryResponse(c.getId(), c.getCode(), c.getName(), c.getAllowedUnit())).toList(); }
 
     @PostMapping("/requests")
+    @Transactional
     public ResponseEntity<RequestResponse> create(@AuthenticationPrincipal User user, @Valid @RequestBody CreateRequest input) {
-        if (input.preferredDate().isBefore(LocalDate.now())) throw new IllegalArgumentException("Preferred date cannot be in the past");
+        if (input.preferredDate().isBefore(operations.serviceToday())) throw new IllegalArgumentException("Preferred date cannot be in the past");
         ServiceZone zone = zones.findById(input.zoneId()).orElseThrow(() -> new IllegalArgumentException("Unknown service zone"));
         WasteCategory category = categories.findById(input.categoryId()).orElseThrow(() -> new IllegalArgumentException("Unknown waste category"));
         if (!category.getAllowedUnit().equals(input.unit())) throw new IllegalArgumentException("Unit is not permitted for this waste category");
@@ -55,8 +61,9 @@ public class PickupController {
     }
 
     @PatchMapping("/requests/{id}/cancel")
+    @Transactional
     public RequestResponse cancel(@AuthenticationPrincipal User user, @PathVariable UUID id) {
-        PickupRequest request = requests.findByIdAndResidentId(id, user.getId()).orElseThrow(() -> new NoSuchElementException("Request not found"));
+        PickupRequest request = requests.lockByIdAndResidentId(id, user.getId()).orElseThrow(() -> new NoSuchElementException("Request not found"));
         PickupStatus previous = request.getStatus(); request.cancel(); requests.save(request);
         history.save(new PickupStatusHistory(request, previous, PickupStatus.CANCELLED, user, "Cancelled by resident"));
         return RequestResponse.from(request);

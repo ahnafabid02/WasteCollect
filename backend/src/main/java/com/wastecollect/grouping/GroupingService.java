@@ -2,6 +2,7 @@ package com.wastecollect.grouping;
 
 import com.wastecollect.auth.User;
 import com.wastecollect.pickup.*;
+import com.wastecollect.operations.OperationsService;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -18,18 +19,20 @@ public class GroupingService {
     private final GroupMembershipHistoryRepository membershipHistory;
     private final AuditLogRepository auditLogs;
     private final int maxRequests;
+    private final OperationsService operations;
 
     public GroupingService(PickupGroupingGateway pickups, GroupingStrategy strategy,
                            CollectionGroupRepository groups, GroupMembershipRepository memberships,
                            GroupMembershipHistoryRepository membershipHistory, AuditLogRepository auditLogs,
-                           @Value("${app.grouping.max-requests:50}") int maxRequests) {
+                           @Value("${app.grouping.max-requests:500}") int maxRequests, OperationsService operations) {
         this.pickups = pickups; this.strategy = strategy; this.groups = groups; this.memberships = memberships;
         this.membershipHistory = membershipHistory; this.auditLogs = auditLogs; this.maxRequests = maxRequests;
+        this.operations = operations;
     }
 
     @Transactional(readOnly = true)
     public List<Suggestion> suggestions() {
-        return strategy.partition(pickups.eligible(LocalDate.now())).entrySet().stream()
+        return strategy.partition(pickups.eligible(operations.serviceToday())).entrySet().stream()
             .map(entry -> new Suggestion(entry.getKey().zoneId(), entry.getKey().zoneName(), entry.getKey().preferredDate(),
                 entry.getValue().stream().map(Candidate::from).toList()))
             .toList();
@@ -40,8 +43,9 @@ public class GroupingService {
         LinkedHashSet<UUID> uniqueIds = new LinkedHashSet<>(requestIds == null ? List.of() : requestIds);
         if (uniqueIds.isEmpty()) throw new IllegalArgumentException("Select at least one request");
         if (uniqueIds.size() != requestIds.size()) throw new IllegalArgumentException("Duplicate request IDs are not allowed");
-        if (uniqueIds.size() > maxRequests) throw new IllegalArgumentException("A group cannot contain more than " + maxRequests + " requests");
-        if (preferredDate.isBefore(LocalDate.now())) throw new IllegalArgumentException("Group date cannot be in the past");
+        int maximum = Math.min(maxRequests, operations.settings().maxGroupRequests());
+        if (uniqueIds.size() > maximum) throw new IllegalArgumentException("A group cannot contain more than " + maximum + " requests");
+        if (preferredDate.isBefore(operations.serviceToday())) throw new IllegalArgumentException("Group date cannot be in the past");
 
         List<PickupRequest> locked = pickups.lock(uniqueIds);
         if (locked.size() != uniqueIds.size()) throw new IllegalArgumentException("One or more requests do not exist");

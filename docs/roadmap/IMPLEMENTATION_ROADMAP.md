@@ -4,6 +4,10 @@
 
 M0 decisions and contracts → M1 foundation → M2 identity → M3 pickup requests → M4 grouping → M5 scheduling/admin → M6 collector operations → M7 notifications/reporting → M8 advanced logistics/AI → M9 integrations → M10 release hardening.
 
+## Current progress
+
+M0–M5 are implemented. M5 delivers administrator operational views, persistent scheduling and collector assignment histories, settings, metrics, and audit history. Native PostgreSQL is used locally and in CI. The next phase is M6: assignment-scoped collector worklists, pickup attempts, completion/failure workflows, and resident status updates. See [M5 evidence](../task-descriptions/M5.md) and the [test plan](../testing/TEST_PLAN.md).
+
 ## M0 exit gate
 
 - Feature inventory and decision log approved.

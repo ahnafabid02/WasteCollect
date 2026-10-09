@@ -386,6 +386,11 @@ Each milestone has a deliverable and an explicit exit gate. Later milestones rem
 
 ### M5 — Scheduling and Administrator Operations
 
+**Implementation status:** Complete. Administrator request/group search, scheduling/rescheduling,
+collector creation/status/assignment/reassignment, dashboard metrics, settings, and audit views are
+implemented with Flyway V5 and native PostgreSQL. Verification evidence is maintained in
+`docs/task-descriptions/M5.md` and `docs/testing/TEST_PLAN.md`. M6 is the next phase.
+
 **Work:** Admin dashboard, request search/filtering, schedule confirmation/rescheduling, group lifecycle, collector management and assignment/reassignment, admin audit records, operational metrics.
 
 **Exit gate:** Admins can organize, schedule, and assign collections end-to-end using real stored data.

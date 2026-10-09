@@ -43,3 +43,11 @@ Addresses, contact details, credentials, refresh references, audit context, and 
 - A local/initial administrator is created only when explicit `APP_BOOTSTRAP_ADMIN_EMAIL` and `APP_BOOTSTRAP_ADMIN_PASSWORD` values are supplied; no administrator password is committed.
 - Collector creation is restricted to `ADMIN` and accepts a temporary password meeting the same minimum length.
 - Both backend authorization and record-level resident ownership checks are covered by integration tests.
+
+## M5 operational controls
+
+- Every `/api/v1/admin/**` read and mutation requires `ADMIN`; resident and collector denial paths are integration-tested.
+- Only active collectors can receive work. A collector with active assignments cannot be suspended; reassignment/cancellation must release that work first.
+- Schedules, reassignments, cancellations, collector creation/status changes, and settings changes write actor-aware audit records in their transaction.
+- Administrator search binds data parameters and only permits known sort columns/directions.
+- Request cancellation and group confirmation serialize on the request row so cancellation cannot orphan a confirmed membership.

@@ -210,3 +210,18 @@ footer { border-top: 1px solid var(--line); color: var(--muted); display: flex; 
   .field-row { grid-template-columns: 1fr; }
   footer { align-items: center; flex-direction: column; gap: 5px; text-align: center; }
 }
+.admin-nav { display: flex; gap: .5rem; flex-wrap: wrap; margin-bottom: 2rem; }
+.admin-nav a { padding: .65rem .9rem; border-radius: .6rem; color: #285848; text-decoration: none; background: #edf5ef; }
+.admin-nav a.active { background: #195c45; color: white; }
+.admin-filters { display: flex; gap: 1rem; flex-wrap: wrap; margin-bottom: 1.5rem; }
+.admin-filters label { flex: 1 1 150px; display: grid; gap: .4rem; font-size: .85rem; }
+.admin-filters input, .admin-filters select, .operation-editor input { padding: .8rem; border: 1px solid #cadbcf; border-radius: .5rem; width: 100%; }
+.metrics-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 1.5rem; }
+.metrics-grid p { display: flex; justify-content: space-between; gap: 1rem; }
+.table-scroll { overflow-x: auto; }
+.admin-table { width: 100%; border-collapse: collapse; text-align: left; }
+.admin-table th, .admin-table td { padding: 1rem .7rem; border-bottom: 1px solid #e0eae2; }
+.admin-table small { display: block; margin-top: .4rem; color: #596e63; }
+.pagination { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 1rem; margin-top: 1.5rem; }
+.operation-editor { margin-top: 1.5rem; }
+.cancel-form { max-width: 500px; margin-top: 2rem; padding-top: 1.5rem; border-top: 1px solid #e0eae2; }
