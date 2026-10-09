@@ -15,6 +15,7 @@ services:
       https://archive.apache.org/dist/maven/maven-3/3.9.9/binaries/apache-maven-3.9.9-bin.tar.gz
       -o /tmp/maven.tar.gz &&
       tar -xzf /tmp/maven.tar.gz --strip-components=1 -C .render/maven &&
+      export JAVA_HOME=$PWD/.render/jdk PATH=$PWD/.render/jdk/bin:$PATH &&
       .render/maven/bin/mvn -B clean package -DskipTests
     startCommand: .render/jdk/bin/java -Dserver.port=$PORT -jar target/wastecollect-backend-0.1.0-SNAPSHOT.jar
     healthCheckPath: /actuator/health
