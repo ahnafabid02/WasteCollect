@@ -2,7 +2,7 @@ spring:
   application:
     name: wastecollect-backend
   datasource:
-    url: ${DATABASE_URL:jdbc:postgresql://localhost:5432/wastecollect}
+    url: ${DATABASE_URL:jdbc:postgresql://${DATABASE_HOST:localhost}:${DATABASE_PORT:5432}/${DATABASE_NAME:wastecollect}}
     username: ${DATABASE_USERNAME:wastecollect}
     password: ${DATABASE_PASSWORD:change-me-for-local-use}
   jpa:

@@ -1,0 +1,66 @@
+services:
+  - type: web
+    name: wastecollect-api
+    runtime: java
+    region: singapore
+    plan: free
+    rootDir: backend
+    buildCommand: mvn -B clean package -DskipTests
+    startCommand: java -Dserver.port=$PORT -jar target/wastecollect-backend-0.1.0-SNAPSHOT.jar
+    healthCheckPath: /actuator/health
+    envVars:
+      - key: DATABASE_HOST
+        fromDatabase:
+          name: wastecollect-db
+          property: host
+      - key: DATABASE_PORT
+        fromDatabase:
+          name: wastecollect-db
+          property: port
+      - key: DATABASE_NAME
+        fromDatabase:
+          name: wastecollect-db
+          property: database
+      - key: DATABASE_USERNAME
+        fromDatabase:
+          name: wastecollect-db
+          property: user
+      - key: DATABASE_PASSWORD
+        fromDatabase:
+          name: wastecollect-db
+          property: password
+      - key: JWT_SECRET
+        generateValue: true
+      - key: APP_CORS_ORIGINS
+        value: https://wastecollect-web.onrender.com
+      - key: APP_BOOTSTRAP_ADMIN_EMAIL
+        sync: false
+      - key: APP_BOOTSTRAP_ADMIN_PASSWORD
+        sync: false
+      - key: APP_BOOTSTRAP_ADMIN_NAME
+        value: Render Administrator
+      - key: GROUPING_MAX_REQUESTS
+        value: "500"
+
+  - type: web
+    name: wastecollect-web
+    runtime: static
+    region: singapore
+    plan: free
+    rootDir: frontend
+    buildCommand: npm ci && npm run build
+    staticPublishPath: dist
+    envVars:
+      - key: VITE_API_URL
+        value: https://wastecollect-api.onrender.com/api/v1
+    routes:
+      - type: rewrite
+        source: /*
+        destination: /index.html
+
+databases:
+  - name: wastecollect-db
+    region: singapore
+    plan: free
+    databaseName: wastecollect
+    user: wastecollect

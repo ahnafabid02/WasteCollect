@@ -68,6 +68,27 @@ Local development and CI use native PostgreSQL. Backend startup applies Flyway m
 50 and cannot exceed that ceiling. Scheduling uses the service timezone `Asia/Dhaka`; the UI's time
 inputs use the browser's local timezone and send ISO timestamps with an offset.
 
+## Deploy to Render
+
+The repository includes a Render Blueprint in [`render.yaml`](./render.yaml) that provisions:
+
+- a free PostgreSQL database;
+- the Spring Boot API as `wastecollect-api`; and
+- the Vite application as the static site `wastecollect-web`, including SPA route fallback.
+
+1. Push the repository to GitHub.
+2. In Render, choose **New > Blueprint**, connect the repository, and select `render.yaml`.
+3. Before creating the services, enter values for the synced
+   `APP_BOOTSTRAP_ADMIN_EMAIL` and `APP_BOOTSTRAP_ADMIN_PASSWORD` variables. Use an admin
+   password with at least 12 characters.
+4. Deploy the Blueprint and wait for both services and the database to become available.
+5. Open the `wastecollect-web` URL and sign in with the bootstrap administrator.
+
+The Blueprint sets the API's CORS origin and the frontend's API URL to the default Render URLs.
+If you rename either service, update `APP_CORS_ORIGINS` and `VITE_API_URL` in `render.yaml` to
+match the resulting URLs before redeploying. The database migrations run automatically when the
+API starts.
+
 ## Quality checks
 
 ```powershell
