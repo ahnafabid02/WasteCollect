@@ -2,6 +2,8 @@
 
 Source: [WasteCollect_Development_Plan.md](./WasteCollect_Development_Plan.md)
 
+Detailed task descriptions are organized by phase in the [task-description index](./docs/task-descriptions/README.md).
+
 ## 14. Implementation Task List
 
 Use this checklist as the execution backlog. Complete tasks in dependency order, link each task to an issue or pull request, and do not mark a milestone complete until its exit gate has been verified.
