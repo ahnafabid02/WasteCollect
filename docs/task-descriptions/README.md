@@ -4,6 +4,19 @@ This directory contains the detailed execution description for every task in [Wa
 
 Each phase file is the detailed source for its tasks. The development plan contains the roadmap and exit gates; it no longer duplicates the task-level checklist.
 
+## M0 design package
+
+The approved M0 artifacts are linked from [M0.md](./M0.md) and organized under [`docs/`](../):
+
+- [Requirements](../requirements/)
+- [Architecture](../architecture/)
+- [Database](../database/)
+- [Security](../security/)
+- [API](../api/)
+- [Frontend](../frontend/)
+- [Testing](../testing/)
+- [Roadmap](../roadmap/)
+
 | Phase | Description file | Scope |
 |---|---|---|
 | M0 | [M0.md](./M0.md) | Requirements Finalization and System Design (14 tasks) |
@@ -24,4 +37,3 @@ Each phase file is the detailed source for its tasks. The development plan conta
 - Update task status in the relevant phase file and mirror the status in the issue tracker.
 - Add issue, pull request, owner, target date, and evidence links beneath the affected task.
 - Do not remove acceptance criteria when implementation details change; revise them with the approved requirement.
-

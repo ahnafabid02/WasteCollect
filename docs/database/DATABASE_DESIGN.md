@@ -1,0 +1,32 @@
+# WasteCollect Database Design
+
+## Core tables
+
+`users`, `service_zones`, `waste_categories`, `pickup_requests`, `collection_groups`, `group_memberships`, `collector_assignments`, `pickup_attempts`, `pickup_status_history`, `notifications`, `audit_logs`, and `refresh_sessions`.
+
+## Required invariants
+
+- User email and public request code are unique.
+- Every request references an existing resident, service zone, and waste category.
+- Quantity is positive and paired with a permitted unit.
+- Internal identifiers are UUIDs.
+- A request has at most one active group membership.
+- Status history is append-only.
+- Assignment history is append-only; only one active assignment is allowed where policy requires it.
+- Foreign keys prevent orphaned operational records.
+- Zone/date/status indexes support grouping and administrator queries.
+
+## Transaction boundaries
+
+- Confirming a group locks or rechecks candidate requests, creates the group and memberships, updates request status, and writes audit/history records atomically.
+- Scheduling validates group state and date before changing the group and member requests.
+- Assignment validates collector availability and writes the assignment and audit record atomically.
+- Status changes validate the transition and append history in one transaction.
+
+## Retention
+
+Operational history is retained for reporting and audit requirements. Sensitive address, contact, and location data must have an approved retention period before production launch. Migrations are versioned through Flyway and never applied by silent schema mutation.
+
+## Deferred schema
+
+Vehicle, route, route-stop, live-location, waste-photo, classification, payment, smart-bin, and external-sync tables are introduced only with their approved module designs.

@@ -5,7 +5,7 @@
 **Version:** 1.0  
 **Date:** 9 October 2026  
 **Development approach:** Greenfield (built entirely from scratch)  
-**Status:** Proposed architecture and delivery plan — subject to detailed M0 review  
+**Status:** M0 design package complete; implementation begins with M1 foundation
 **Primary reference:** `WasteCollect_SRS.md` (SRS v1.0)
 
 > **Project direction:** Build a complete, production-oriented web waste collection management platform. No Lovable-generated code, architecture, components, or database will be reused. All core capabilities and originally proposed advanced features remain in the roadmap, implemented in dependency order.
