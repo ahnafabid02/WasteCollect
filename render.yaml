@@ -1,10 +1,22 @@
 services:
   - type: web
     name: wastecollect-api
-    runtime: docker
+    runtime: node
     region: singapore
     plan: free
     rootDir: backend
+    buildCommand: >-
+      curl -fsSL
+      https://api.adoptium.net/v3/binary/latest/21/ga/linux/x64/jdk/hotspot/normal/eclipse
+      -o /tmp/jdk.tar.gz &&
+      mkdir -p .render/jdk .render/maven &&
+      tar -xzf /tmp/jdk.tar.gz --strip-components=1 -C .render/jdk &&
+      curl -fsSL
+      https://archive.apache.org/dist/maven/maven-3/3.9.9/binaries/apache-maven-3.9.9-bin.tar.gz
+      -o /tmp/maven.tar.gz &&
+      tar -xzf /tmp/maven.tar.gz --strip-components=1 -C .render/maven &&
+      .render/maven/bin/mvn -B clean package -DskipTests
+    startCommand: .render/jdk/bin/java -Dserver.port=$PORT -jar target/wastecollect-backend-0.1.0-SNAPSHOT.jar
     healthCheckPath: /actuator/health
     envVars:
       - key: DATABASE_HOST
