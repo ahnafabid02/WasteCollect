@@ -1,12 +1,10 @@
 services:
   - type: web
     name: wastecollect-api
-    runtime: java
+    runtime: docker
     region: singapore
     plan: free
     rootDir: backend
-    buildCommand: mvn -B clean package -DskipTests
-    startCommand: java -Dserver.port=$PORT -jar target/wastecollect-backend-0.1.0-SNAPSHOT.jar
     healthCheckPath: /actuator/health
     envVars:
       - key: DATABASE_HOST
@@ -45,7 +43,6 @@ services:
   - type: web
     name: wastecollect-web
     runtime: static
-    region: singapore
     plan: free
     rootDir: frontend
     buildCommand: npm ci && npm run build
