@@ -25,5 +25,31 @@ h1 { font-size: clamp(2.4rem, 7vw, 5rem); line-height: 1.05; margin: 16px 0; }
 .actions { display: flex; flex-wrap: wrap; gap: 12px; margin-top: 32px; }
 .button { border-radius: 10px; font-weight: 700; padding: 12px 18px; }
 .primary { background: #116149; color: white; }
+
+.auth-form {
+  display: grid;
+  gap: 1rem;
+  max-width: 28rem;
+}
+
+.auth-form label {
+  display: grid;
+  gap: .4rem;
+  font-weight: 600;
+}
+
+.auth-form input {
+  border: 1px solid #cbd5d1;
+  border-radius: .5rem;
+  font: inherit;
+  padding: .7rem .8rem;
+}
+
+.auth-form select, .auth-form textarea {
+  border: 1px solid #cbd5d1;
+  border-radius: .5rem;
+  font: inherit;
+  padding: .7rem .8rem;
+}
 .secondary { border: 1px solid #a9c4b7; color: #116149; }
 @media (max-width: 640px) { .topbar { align-items: flex-start; flex-direction: column; gap: 16px; padding: 20px; } nav { gap: 12px; } .hero, .panel { margin: 4vh 16px; padding: 28px 22px; } }

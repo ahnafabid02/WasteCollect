@@ -37,3 +37,10 @@
 ## Contract requirements
 
 Each route documents authentication, role, ownership scope, parameters, validation, response DTO, error responses, pagination, and idempotency behavior. State-changing actions that may be retried accept an idempotency key and return the original result for a duplicate key.
+
+## M3 resident request slice
+
+- `GET /api/v1/zones` and `GET /api/v1/waste-categories` are public and return active catalog entries.
+- `POST /api/v1/requests` requires a resident access token. It accepts `zoneId`, `categoryId`, `address`, positive `quantity`, category-compatible `unit`, a current-or-future `preferredDate`, and optional `notes`.
+- `GET /api/v1/requests/my` and `GET /api/v1/requests/{id}` are resident-owned reads; a request belonging to another resident is not disclosed.
+- `PATCH /api/v1/requests/{id}/cancel` records a `CANCELLED` status-history event and is allowed only for the authenticated resident's eligible request.

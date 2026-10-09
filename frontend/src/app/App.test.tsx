@@ -15,3 +15,16 @@ test("renders the WasteCollect foundation shell", () => {
   expect(screen.getByRole("link", { name: "WasteCollect" })).toBeInTheDocument();
   expect(screen.getByRole("heading", { name: /cleaner collections/i })).toBeInTheDocument();
 });
+
+test("renders the M2 sign-in form", () => {
+  render(
+    <QueryClientProvider client={new QueryClient()}>
+      <MemoryRouter initialEntries={["/login"]}>
+        <App />
+      </MemoryRouter>
+    </QueryClientProvider>,
+  );
+  expect(screen.getByRole("heading", { name: "Sign in" })).toBeInTheDocument();
+  expect(screen.getByLabelText("Email")).toHaveAttribute("type", "email");
+  expect(screen.getByLabelText("Password")).toHaveAttribute("type", "password");
+});

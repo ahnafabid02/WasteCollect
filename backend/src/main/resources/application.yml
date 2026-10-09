@@ -27,3 +27,7 @@ management:
 app:
   cors:
     origins: ${APP_CORS_ORIGINS:http://localhost:5173}
+  security:
+    jwt-secret: ${JWT_SECRET:change-this-development-secret-to-at-least-32-characters}
+    access-token-minutes: ${JWT_ACCESS_TOKEN_MINUTES:15}
+    refresh-token-days: ${JWT_REFRESH_TOKEN_DAYS:30}
