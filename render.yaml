@@ -55,7 +55,6 @@ services:
   - type: web
     name: wastecollect-web
     runtime: static
-    plan: free
     rootDir: frontend
     buildCommand: npm ci && npm run build
     staticPublishPath: dist
