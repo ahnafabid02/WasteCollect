@@ -61,6 +61,7 @@ public class SecurityConfig {
                     "/api/v1/auth/**", "/api/v1/zones", "/api/v1/waste-categories").permitAll()
                 .requestMatchers("/api/v1/users/me").authenticated()
                 .requestMatchers("/api/v1/admin/**").hasRole("ADMIN")
+                .requestMatchers("/api/v1/collector/**").hasRole("COLLECTOR")
                 .requestMatchers("/api/v1/requests/**").hasRole("RESIDENT")
                 .anyRequest().authenticated())
             .addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class)

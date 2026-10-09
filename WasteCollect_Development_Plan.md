@@ -389,13 +389,18 @@ Each milestone has a deliverable and an explicit exit gate. Later milestones rem
 **Implementation status:** Complete. Administrator request/group search, scheduling/rescheduling,
 collector creation/status/assignment/reassignment, dashboard metrics, settings, and audit views are
 implemented with Flyway V5 and native PostgreSQL. Verification evidence is maintained in
-`docs/task-descriptions/M5.md` and `docs/testing/TEST_PLAN.md`. M6 is the next phase.
+`docs/task-descriptions/M5.md` and `docs/testing/TEST_PLAN.md`.
 
 **Work:** Admin dashboard, request search/filtering, schedule confirmation/rescheduling, group lifecycle, collector management and assignment/reassignment, admin audit records, operational metrics.
 
 **Exit gate:** Admins can organize, schedule, and assign collections end-to-end using real stored data.
 
 ### M6 — Collector Operations and Status Tracking
+
+**Implementation status:** Complete. Collector-scoped worklists, assignment checks, start-work and
+pickup attempt workflows, retry history, resident/admin status propagation, and the collector workspace
+are implemented with Flyway V6. Verification evidence is maintained in
+`docs/task-descriptions/M6.md` and the M6 integration test.
 
 **Work:** Collector dashboard, assigned groups, daily worklists, address details, start work, record pickup attempts, completed/failed statuses, retry-related workflows, assignment history, resident/admin status updates.
 

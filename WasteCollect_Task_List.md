@@ -90,14 +90,14 @@ Use this checklist as the execution backlog. Complete tasks in dependency order,
 
 ### 14.7 M6 — Collector Operations and Status Tracking
 
-- [ ] Implement collector assigned-group and daily-worklist APIs.
-- [ ] Implement assignment-scoped access checks for every collector operation.
-- [ ] Implement start-work, pickup-attempt, completed, failed, and retry-related workflows.
-- [ ] Preserve attempt, assignment, and status history across retries and reassignment.
-- [ ] Implement resident and administrator status updates from collector actions.
-- [ ] Build collector dashboard, group list, pickup detail, and completed-work views.
-- [ ] Add tests for partial failures, invalid transitions, reassignment, and unauthorized updates.
-- [ ] Verify the M6 exit gate.
+- [x] Implement collector assigned-group and daily-worklist APIs.
+- [x] Implement assignment-scoped access checks for every collector operation.
+- [x] Implement start-work, pickup-attempt, completed, failed, and retry-related workflows.
+- [x] Preserve attempt, assignment, and status history across retries and reassignment.
+- [x] Implement resident and administrator status updates from collector actions.
+- [x] Build collector dashboard, group list, pickup detail, and completed-work views.
+- [x] Add tests for partial failures, invalid transitions, reassignment, and unauthorized updates.
+- [x] Verify the M6 exit gate.
 
 ### 14.8 M7 — Notifications, Analytics, and Reporting
 

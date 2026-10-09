@@ -2,9 +2,9 @@
 
 WasteCollect is a waste collection management platform for residents, administrators, and collectors.
 
-Implemented through M5: resident requests and tracking, administrator grouping, scheduling/rescheduling,
-collector creation and assignment/reassignment, searchable operational lists, dashboard metrics,
-audit history, and persistent operational settings. Collector work execution is the next milestone (M6).
+Implemented through M6: resident requests and tracking, administrator grouping, scheduling/rescheduling,
+collector creation and assignment/reassignment, collector worklists and pickup outcomes, searchable
+operational lists, dashboard metrics, audit history, and persistent operational settings.
 
 ## Repository structure
 
@@ -67,6 +67,9 @@ Local development and CI use native PostgreSQL. Backend startup applies Flyway m
 `GROUPING_MAX_REQUESTS` is a deployment ceiling (default 500); the administrator setting defaults to
 50 and cannot exceed that ceiling. Scheduling uses the service timezone `Asia/Dhaka`; the UI's time
 inputs use the browser's local timezone and send ISO timestamps with an offset.
+Collectors sign in with their assigned account to view only active assignments, start scheduled groups,
+record completed or failed pickup attempts, and retry failed requests. Each attempt and resulting request
+status is persisted; resident and administrator history views therefore reflect collector actions.
 
 ## Deploy to Render
 

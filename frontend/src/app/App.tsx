@@ -1,6 +1,7 @@
 import { FormEvent, useCallback, useEffect, useMemo, useState } from "react";
 import { Link, NavLink, Navigate, Route, Routes, useNavigate, useParams } from "react-router-dom";
 import AdminOperations, { AdminNav } from "../features/admin/AdminOperations";
+import CollectorWorkspace, { CollectorGroup } from "../features/collector/CollectorWorkspace";
 
 const API_URL = import.meta.env.VITE_API_URL ?? "http://localhost:8080/api/v1";
 const TOKEN_KEY = "wastecollect.tokens";
@@ -102,7 +103,7 @@ function Login({ onLogin }: { onLogin: (role: string) => void }) {
       const profile = (await profileResponse.json()) as UserProfile;
       sessionStorage.setItem(ROLE_KEY, profile.role);
       onLogin(profile.role);
-      navigate(profile.role === "ADMIN" ? "/admin" : "/account", { replace: true });
+      navigate(profile.role === "ADMIN" ? "/admin" : profile.role === "COLLECTOR" ? "/collector" : "/account", { replace: true });
     } catch (exception) {
       const message = exception instanceof Error ? exception.message : "";
       setError(message === "Failed to fetch"
@@ -398,14 +399,16 @@ export default function App() {
   const adminLogout = useCallback(() => revokeSession(handleLogout, navigate), [handleLogout, navigate]);
   const authenticated = Boolean(readTokens() && role);
   return <div className="app-shell">
-    <header className="topbar"><Link className="brand" to="/"><span aria-hidden="true">♻</span> WasteCollect</Link><nav aria-label="Primary navigation"><NavLink to="/how-it-works">How it works</NavLink><NavLink to="/waste-information">Waste guide</NavLink>{!authenticated && <NavLink to="/register">Register</NavLink>}<NavLink className="nav-cta" to={role === "ADMIN" ? "/admin" : authenticated ? "/account" : "/login"}>{authenticated ? "My workspace" : "Sign in"}</NavLink></nav></header>
+    <header className="topbar"><Link className="brand" to="/"><span aria-hidden="true">♻</span> WasteCollect</Link><nav aria-label="Primary navigation"><NavLink to="/how-it-works">How it works</NavLink><NavLink to="/waste-information">Waste guide</NavLink>{!authenticated && <NavLink to="/register">Register</NavLink>}<NavLink className="nav-cta" to={role === "ADMIN" ? "/admin" : role === "COLLECTOR" ? "/collector" : authenticated ? "/account" : "/login"}>{authenticated ? "My workspace" : "Sign in"}</NavLink></nav></header>
     <Routes>
       <Route path="/" element={<Home />} />
       <Route path="/how-it-works" element={<InfoPage eyebrow="A simple three-step service" title="From request to collection." description="A clear workflow keeps residents informed and collections organized."><article><span>01</span><h2>Submit your request</h2><p>Choose a category, service zone, date, and collection address.</p></article><article><span>02</span><h2>We coordinate</h2><p>Your request enters the collection queue for scheduling.</p></article><article><span>03</span><h2>Waste is collected</h2><p>Track the request from your resident workspace.</p></article></InfoPage>} />
       <Route path="/waste-information" element={<InfoPage eyebrow="Sort smarter" title="Know what goes where." description="Select the matching category when you create a pickup request."><article><span className="category-icon">●</span><h2>General waste</h2><p>Everyday non-recyclable household items. Measured by bag.</p></article><article><span className="category-icon mint">●</span><h2>Recyclables</h2><p>Clean paper, plastic, glass, and metal. Measured by bag.</p></article><article><span className="category-icon gold">●</span><h2>Organic waste</h2><p>Food scraps and compostable material. Measured in kilograms.</p></article></InfoPage>} />
-      <Route path="/register" element={authenticated ? <Navigate to={role === "ADMIN" ? "/admin" : "/account"} replace /> : <Register />} />
-      <Route path="/login" element={authenticated ? <Navigate to={role === "ADMIN" ? "/admin" : "/account"} replace /> : <Login onLogin={nextRole => setRole(nextRole)} />} />
+      <Route path="/register" element={authenticated ? <Navigate to={role === "ADMIN" ? "/admin" : role === "COLLECTOR" ? "/collector" : "/account"} replace /> : <Register />} />
+      <Route path="/login" element={authenticated ? <Navigate to={role === "ADMIN" ? "/admin" : role === "COLLECTOR" ? "/collector" : "/account"} replace /> : <Login onLogin={nextRole => setRole(nextRole)} />} />
       <Route path="/account" element={<Account onLogout={handleLogout} />} />
+      <Route path="/collector" element={role === "COLLECTOR" ? <CollectorWorkspace onLogout={handleLogout} /> : <Navigate to="/login" replace />} />
+      <Route path="/collector/groups/:id" element={role === "COLLECTOR" ? <CollectorGroup /> : <Navigate to="/login" replace />} />
       <Route path="/requests/:id" element={<RequestDetail />} />
       <Route path="/admin/groups" element={<AdminGroups onLogout={handleLogout} />} />
       {["/admin", "/admin/requests", "/admin/scheduling", "/admin/collectors", "/admin/audit", "/admin/settings"].map(path => <Route key={path} path={path} element={<AdminOperations key={path} onLogout={adminLogout} />} />)}

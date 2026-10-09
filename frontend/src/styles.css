@@ -112,6 +112,13 @@ textarea { resize: vertical; }
 .workspace-heading h1 { font-size: clamp(2.2rem, 5vw, 3.8rem); margin-bottom: 10px; }
 .workspace-grid { align-items: start; display: grid; gap: 22px; grid-template-columns: minmax(0, 1.1fr) minmax(330px, .9fr); }
 .content-card, .loading-card { background: white; border: 1px solid var(--line); border-radius: 20px; box-shadow: 0 12px 35px rgba(32,67,58,.05); padding: 28px; }
+.collector-metrics { margin: 0 0 24px; }
+.collector-list { margin-top: 24px; }
+.collector-group-link { background: transparent; border: 0; color: inherit; cursor: pointer; display: grid; gap: 4px; padding: 0; text-align: left; }
+.collector-group-link span { color: var(--muted); font-size: .85rem; }
+.collector-pickups { display: grid; gap: 18px; margin-top: 28px; }
+.collector-attempt { display: grid; gap: 10px; }
+.hidden-form { display: none; }
 .loading-card { align-items: center; display: flex; gap: 12px; justify-content: center; min-height: 180px; }
 .section-heading { align-items: start; border-bottom: 1px solid #e8ede8; display: flex; gap: 14px; margin-bottom: 23px; padding-bottom: 18px; }
 .section-heading .step { align-items: center; background: var(--mint); border-radius: 8px; color: var(--green); display: flex; flex: 0 0 auto; font-size: .7rem; font-weight: 800; height: 32px; justify-content: center; width: 32px; }

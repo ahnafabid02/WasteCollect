@@ -12,6 +12,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.test.annotation.Rollback;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.transaction.annotation.Transactional;
+import jakarta.persistence.EntityManager;
 
 import java.time.LocalDate;
 import java.util.UUID;
@@ -31,6 +32,7 @@ class MilestoneIntegrationTests {
     @Autowired MockMvc mvc;
     @Autowired JdbcTemplate jdbc;
     @Autowired PasswordEncoder passwords;
+    @Autowired EntityManager entityManager;
 
     @Test
     void residentRequestHistoryAndOwnershipAreEnforced() throws Exception {
@@ -104,6 +106,54 @@ class MilestoneIntegrationTests {
         mvc.perform(post("/api/v1/auth/refresh").contentType(MediaType.APPLICATION_JSON)
                 .content("{\"refreshToken\":\"" + rotatedRefresh + "\"}"))
             .andExpect(status().isBadRequest());
+    }
+
+    @Test
+    void collectorCanOnlyExecuteAssignedWorkAndResidentSeesCompletedStatus() throws Exception {
+        LocalDate date = LocalDate.now().plusDays(3);
+        String resident = residentToken("collector-flow");
+        UUID requestId = createRequest(resident, date);
+        String admin = adminToken();
+        String groupBody = """
+            {"zoneId":"%s","preferredDate":"%s","requestIds":["%s"]}
+            """.formatted(CENTRAL_ZONE, date, requestId);
+        String groupResponse = mvc.perform(post("/api/v1/admin/groups").header("Authorization", bearer(admin))
+                .contentType(MediaType.APPLICATION_JSON).content(groupBody))
+            .andExpect(status().isCreated()).andReturn().getResponse().getContentAsString();
+        UUID groupId = UUID.fromString(JSON.readTree(groupResponse).get("id").asText());
+        entityManager.flush();
+        String start = date + "T09:00:00Z";
+        String end = date + "T10:00:00Z";
+        mvc.perform(patch("/api/v1/admin/groups/{id}/schedule", groupId).header("Authorization", bearer(admin))
+                .contentType(MediaType.APPLICATION_JSON)
+                .content("{\"startsAt\":\"" + start + "\",\"endsAt\":\"" + end + "\",\"reason\":\"Planned route\"}"))
+            .andExpect(status().isNoContent());
+        String collectorEmail = "collector." + UUID.randomUUID() + "@example.com";
+        String collectorPassword = "collector-pass-123";
+        mvc.perform(post("/api/v1/admin/users/collectors").header("Authorization", bearer(admin))
+                .contentType(MediaType.APPLICATION_JSON)
+                .content("{\"email\":\"" + collectorEmail + "\",\"temporaryPassword\":\"" + collectorPassword + "\",\"displayName\":\"Route Collector\"}"))
+            .andExpect(status().isCreated());
+        entityManager.flush();
+        mvc.perform(post("/api/v1/admin/groups/{id}/assignment", groupId).header("Authorization", bearer(admin))
+                .contentType(MediaType.APPLICATION_JSON)
+                .content("{\"collectorId\":\"" + jdbc.queryForObject("SELECT id FROM app_users WHERE email=?", UUID.class, collectorEmail) + "\",\"reason\":\"Assigned route\"}"))
+            .andExpect(status().isNoContent());
+        String collector = login(collectorEmail, collectorPassword);
+
+        mvc.perform(get("/api/v1/collector/groups/{id}", groupId).header("Authorization", bearer(collector)))
+            .andExpect(status().isOk()).andExpect(jsonPath("$.requests[0].id").value(requestId.toString()));
+        mvc.perform(post("/api/v1/collector/groups/{id}/start", groupId).header("Authorization", bearer(collector)))
+            .andExpect(status().isNoContent());
+        mvc.perform(post("/api/v1/collector/groups/{id}/attempts", groupId).header("Authorization", bearer(collector))
+                .contentType(MediaType.APPLICATION_JSON)
+                .content("{\"requestId\":\"" + requestId + "\",\"outcome\":\"COMPLETED\",\"reason\":\"Collected at gate\"}"))
+            .andExpect(status().isNoContent());
+        entityManager.clear();
+        mvc.perform(get("/api/v1/requests/{id}", requestId).header("Authorization", bearer(resident)))
+            .andExpect(status().isOk()).andExpect(jsonPath("$.status").value("COMPLETED"));
+        mvc.perform(get("/api/v1/collector/groups/{id}", groupId).header("Authorization", bearer(resident)))
+            .andExpect(status().isForbidden());
     }
 
     private String residentToken(String prefix) throws Exception {
