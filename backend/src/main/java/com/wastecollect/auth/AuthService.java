@@ -47,6 +47,14 @@ public class AuthService {
     }
 
     @Transactional
+    public User provision(String email, String password, String displayName, UserRole role) {
+        String normalized = email.trim().toLowerCase();
+        if (users.existsByEmailIgnoreCase(normalized)) throw new IllegalArgumentException("Email is already registered");
+        if (role == UserRole.RESIDENT) throw new IllegalArgumentException("Residents must use self-registration");
+        return users.save(new User(normalized, passwordEncoder.encode(password), displayName.trim(), role));
+    }
+
+    @Transactional
     public TokenPair issueTokens(User user) {
         Instant now = Instant.now();
         String access = Jwts.builder().subject(user.getId().toString()).claim("role", user.getRole().name())

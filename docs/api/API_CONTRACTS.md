@@ -44,3 +44,11 @@ Each route documents authentication, role, ownership scope, parameters, validati
 - `POST /api/v1/requests` requires a resident access token. It accepts `zoneId`, `categoryId`, `address`, positive `quantity`, category-compatible `unit`, a current-or-future `preferredDate`, and optional `notes`.
 - `GET /api/v1/requests/my` and `GET /api/v1/requests/{id}` are resident-owned reads; a request belonging to another resident is not disclosed.
 - `PATCH /api/v1/requests/{id}/cancel` records a `CANCELLED` status-history event and is allowed only for the authenticated resident's eligible request.
+- `GET /api/v1/requests/{id}/history` returns the authenticated resident's append-only status history.
+
+## M4 grouping slice
+
+- `POST /api/v1/admin/groups/suggestions` is admin-only and returns non-persistent partitions of eligible pending requests by `(zoneId, preferredDate)`.
+- `POST /api/v1/admin/groups` accepts an administrator-adjusted `zoneId`, `preferredDate`, and unique `requestIds`. It locks and revalidates requests, creates the group and memberships, records history/audit entries, and changes requests to `GROUPED` atomically.
+- `GET /api/v1/admin/groups` returns confirmed groups and active members for administrator review.
+- Conflicting or repeated confirmation returns `409 CONFLICT`; validation failures return the documented structured error response.

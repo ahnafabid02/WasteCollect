@@ -48,6 +48,12 @@ public class PickupController {
         return RequestResponse.from(requests.findByIdAndResidentId(id, user.getId()).orElseThrow(() -> new NoSuchElementException("Request not found")));
     }
 
+    @GetMapping("/requests/{id}/history")
+    public List<HistoryResponse> history(@AuthenticationPrincipal User user, @PathVariable UUID id) {
+        requests.findByIdAndResidentId(id, user.getId()).orElseThrow(() -> new NoSuchElementException("Request not found"));
+        return history.findByRequestIdOrderByCreatedAtAsc(id).stream().map(HistoryResponse::from).toList();
+    }
+
     @PatchMapping("/requests/{id}/cancel")
     public RequestResponse cancel(@AuthenticationPrincipal User user, @PathVariable UUID id) {
         PickupRequest request = requests.findByIdAndResidentId(id, user.getId()).orElseThrow(() -> new NoSuchElementException("Request not found"));
@@ -61,6 +67,9 @@ public class PickupController {
                                 @NotBlank String unit, @NotNull LocalDate preferredDate, @Size(max = 1000) String notes) {}
     public record ZoneResponse(UUID id, String code, String name) {}
     public record CategoryResponse(UUID id, String code, String name, String allowedUnit) {}
+    public record HistoryResponse(PickupStatus previousStatus, PickupStatus nextStatus, String reason, java.time.Instant createdAt) {
+        static HistoryResponse from(PickupStatusHistory item) { return new HistoryResponse(item.getPreviousStatus(), item.getNextStatus(), item.getReason(), item.getCreatedAt()); }
+    }
     public record RequestResponse(UUID id, String publicCode, UUID zoneId, String zoneName, UUID categoryId, String categoryName,
                                   String address, BigDecimal quantity, String unit, LocalDate preferredDate, String notes, PickupStatus status) {
         static RequestResponse from(PickupRequest r) { return new RequestResponse(r.getId(), r.getPublicCode(), r.getZone().getId(), r.getZone().getName(),

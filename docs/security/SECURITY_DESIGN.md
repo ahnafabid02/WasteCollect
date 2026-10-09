@@ -36,3 +36,10 @@ Addresses, contact details, credentials, refresh references, audit context, and 
 - Rate limiting and abuse protection for authentication endpoints.
 - Audit records for administrator overrides, grouping, scheduling, assignment, and status changes.
 - Dependency, secret, authorization, and negative-path tests in CI.
+
+## Implemented identity provisioning
+
+- Residents self-register with a minimum 12-character password that is BCrypt-hashed.
+- A local/initial administrator is created only when explicit `APP_BOOTSTRAP_ADMIN_EMAIL` and `APP_BOOTSTRAP_ADMIN_PASSWORD` values are supplied; no administrator password is committed.
+- Collector creation is restricted to `ADMIN` and accepts a temporary password meeting the same minimum length.
+- Both backend authorization and record-level resident ownership checks are covered by integration tests.

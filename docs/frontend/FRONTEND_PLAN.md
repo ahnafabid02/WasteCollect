@@ -7,6 +7,14 @@
 - Administrator: `/admin`, `/admin/requests`, `/admin/groups`, `/admin/scheduling`, `/admin/collectors`, `/admin/reports`, `/admin/settings`
 - Collector: `/collector`, `/collector/groups`, `/collector/tasks`, `/collector/requests/:id`, `/collector/history`, `/collector/profile`
 
+## Implemented routes through M4
+
+- Public: `/`, `/how-it-works`, `/waste-information`, `/register`, `/login`
+- Resident: `/account` and `/requests/:id` for request creation, status, history, and pending-request cancellation
+- Administrator: `/admin/groups` for zone/date suggestions, manual membership adjustment, confirmation, and confirmed-group review
+
+The broader route map above remains the post-M4 target. Authentication currently routes each implemented role directly to its meaningful workspace, and sign-out revokes the refresh session before clearing browser state.
+
 ## Structure
 
 Use feature-first folders: `app`, `components`, `features/auth`, `features/resident`, `features/admin`, `features/collector`, `hooks`, `services`, `types`, and `utils`.

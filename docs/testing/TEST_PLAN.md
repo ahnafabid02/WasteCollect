@@ -1,4 +1,12 @@
-# WasteCollect M0 Test Plan
+# WasteCollect Test Plan
+
+## Implemented evidence through M4
+
+- Spring integration tests cover registration, login, refresh-token rotation, logout revocation, resident ownership, request history, cancellation, administrator-only grouping, group confirmation, and collector provisioning.
+- A real PostgreSQL concurrency test runs two overlapping group confirmations and verifies exactly one active membership is committed.
+- Migration tests run Flyway through V4 against native PostgreSQL; no container runtime is required.
+- Frontend lint, TypeScript checks, component tests, and production build are part of the verification gate.
+- Through M4, resident cancellation is limited to `PENDING` requests. Later operational cancellation and membership/count reconciliation belongs to the scheduling workflow introduced after M4.
 
 ## Test layers
 

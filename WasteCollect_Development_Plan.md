@@ -112,7 +112,7 @@ flowchart TB
 | Backend tests | JUnit, Mockito, Testcontainers | Unit and real-PostgreSQL integration tests |
 | Frontend tests | Vitest, React Testing Library | Components and user interactions |
 | End-to-end tests | Playwright | Complete role-based user journeys |
-| Local infrastructure | Docker Compose | Repeatable development dependencies |
+| Local infrastructure | Native PostgreSQL + PowerShell setup | Repeatable development database without container tooling |
 | CI/CD | GitHub Actions | Build, lint, test, release checks |
 | Deployment | Managed frontend hosting, Spring Boot hosting, managed PostgreSQL | Independent lifecycle and operational control |
 
@@ -330,7 +330,7 @@ WasteCollect/
 │   ├── testing/
 │   └── roadmap/
 ├── infrastructure/
-│   └── docker-compose.yml
+│   └── local PostgreSQL setup scripts
 ├── .github/workflows/
 └── README.md
 ```
@@ -362,7 +362,7 @@ Each milestone has a deliverable and an explicit exit gate. Later milestones rem
 
 ### M1 — Project Foundation
 
-**Work:** Create React/Vite/TypeScript frontend and Spring Boot backend; set up PostgreSQL, Docker Compose, Flyway, environment config, linting/formatting, automated tests, GitHub Actions, and first health-check endpoint.
+**Work:** Create React/Vite/TypeScript frontend and Spring Boot backend; set up native PostgreSQL, Flyway, environment config, linting/formatting, automated tests, GitHub Actions, and first health-check endpoint.
 
 **Exit gate:** Fresh checkout starts locally; frontend, backend, and database are connected; CI builds and baseline tests pass.
 
@@ -453,7 +453,7 @@ Each milestone has a deliverable and an explicit exit gate. Later milestones rem
 
 | Environment | Usage |
 |---|---|
-| Local | Daily development, Dockerized PostgreSQL, seeded fictional data |
+| Local | Daily development, native PostgreSQL, seeded fictional data |
 | Staging | Full integration checks, migration rehearsal, E2E, release validation |
 | Production | Real users and operational data under monitoring, backup, and access controls |
 

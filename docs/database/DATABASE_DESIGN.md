@@ -23,6 +23,13 @@
 - Assignment validates collector availability and writes the assignment and audit record atomically.
 - Status changes validate the transition and append history in one transaction.
 
+## Implemented through M4
+
+- `V1` establishes the migration baseline, `V2` identity and sessions, `V3` request/catalog persistence, and `V4` grouping/audit persistence.
+- `uq_active_membership_per_request` is a PostgreSQL partial unique index over active memberships.
+- Group confirmation uses pessimistic request-row locking plus the database uniqueness constraint as defense in depth.
+- Group membership and request status histories are append-only; administrator confirmation also writes an audit event.
+
 ## Retention
 
 Operational history is retained for reporting and audit requirements. Sensitive address, contact, and location data must have an approved retention period before production launch. Migrations are versioned through Flyway and never applied by silent schema mutation.

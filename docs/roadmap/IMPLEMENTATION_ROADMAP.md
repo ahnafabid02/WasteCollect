@@ -31,7 +31,7 @@ Every implementation issue must include:
 ## M1 starter backlog
 
 - Scaffold frontend and backend.
-- Configure PostgreSQL, Docker Compose, and Flyway.
+- Configure native PostgreSQL and Flyway with a repeatable PowerShell setup.
 - Configure environment handling and quality tooling.
 - Add health endpoint and application shells.
 - Add CI build, lint, type-check, and test jobs.

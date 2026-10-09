@@ -29,11 +29,15 @@ public class User {
     protected User() {}
 
     public User(String email, String passwordHash, String displayName) {
+        this(email, passwordHash, displayName, UserRole.RESIDENT);
+    }
+
+    public User(String email, String passwordHash, String displayName, UserRole role) {
         this.id = UUID.randomUUID();
         this.email = email;
         this.passwordHash = passwordHash;
         this.displayName = displayName;
-        this.role = UserRole.RESIDENT;
+        this.role = role;
         this.status = AccountStatus.ACTIVE;
         this.createdAt = Instant.now();
         this.updatedAt = this.createdAt;

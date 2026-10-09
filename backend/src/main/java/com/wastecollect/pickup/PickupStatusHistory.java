@@ -19,4 +19,8 @@ public class PickupStatusHistory {
         this.id = UUID.randomUUID(); this.request = request; this.previousStatus = previous; this.nextStatus = next;
         this.actor = actor; this.reason = reason; this.createdAt = Instant.now();
     }
+    public PickupStatus getPreviousStatus() { return previousStatus; }
+    public PickupStatus getNextStatus() { return nextStatus; }
+    public String getReason() { return reason; }
+    public Instant getCreatedAt() { return createdAt; }
 }

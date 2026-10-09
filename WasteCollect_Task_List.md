@@ -10,71 +10,71 @@ Use this checklist as the execution backlog. Complete tasks in dependency order,
 
 ### 14.1 M0 — Requirements Finalization and System Design
 
-- [ ] Review the SRS and finalize the complete feature inventory.
-- [ ] Record unresolved product decisions, owners, and target dates.
-- [ ] Decide supported cities/zones, zone lifecycle rules, quantity units, and date rules.
-- [ ] Finalize pickup and collection-group status-transition matrices.
-- [ ] Define cancellation cutoffs, rescheduling, failure, retry, reassignment, and partial-completion policies.
-- [ ] Decide initial group capacity limits and the concurrency-control strategy.
-- [ ] Define role-level and record-ownership authorization rules.
-- [ ] Draw and review the ERD, foreign keys, constraints, indexes, and retention requirements.
-- [ ] Define the versioned REST API contract, DTOs, pagination, validation errors, and idempotency rules.
-- [ ] Approve frontend routes, shared design-system responsibilities, and feature boundaries.
-- [ ] Define the test plan, critical acceptance scenarios, seed data, and release gates.
-- [ ] Create the architecture, domain, database, business-rules, security, API, roadmap, and test-plan documents.
-- [ ] Break M1–M10 into implementable issues with dependencies and acceptance criteria.
-- [ ] Approve the M0 exit gate before starting implementation.
+- [x] Review the SRS and finalize the complete feature inventory.
+- [x] Record unresolved product decisions, owners, and target dates.
+- [x] Decide supported cities/zones, zone lifecycle rules, quantity units, and date rules.
+- [x] Finalize pickup and collection-group status-transition matrices.
+- [x] Define cancellation cutoffs, rescheduling, failure, retry, reassignment, and partial-completion policies.
+- [x] Decide initial group capacity limits and the concurrency-control strategy.
+- [x] Define role-level and record-ownership authorization rules.
+- [x] Draw and review the ERD, foreign keys, constraints, indexes, and retention requirements.
+- [x] Define the versioned REST API contract, DTOs, pagination, validation errors, and idempotency rules.
+- [x] Approve frontend routes, shared design-system responsibilities, and feature boundaries.
+- [x] Define the test plan, critical acceptance scenarios, seed data, and release gates.
+- [x] Create the architecture, domain, database, business-rules, security, API, roadmap, and test-plan documents.
+- [x] Break M1–M10 into implementable issues with dependencies and acceptance criteria.
+- [x] Approve the M0 exit gate before starting implementation.
 
 ### 14.2 M1 — Project Foundation
 
-- [ ] Create the monorepo directory structure and baseline README.
-- [ ] Scaffold the React/Vite/TypeScript frontend.
-- [ ] Scaffold the modular Spring Boot backend.
-- [ ] Configure PostgreSQL and Docker Compose for local development.
-- [ ] Configure Flyway and create the initial migration convention.
-- [ ] Add environment configuration and safe local development defaults.
-- [ ] Configure formatting, linting, type checking, and baseline test runners.
-- [ ] Add the backend health-check endpoint and frontend application shell.
-- [ ] Add GitHub Actions for build, lint, type check, and test validation.
-- [ ] Verify a fresh checkout starts frontend, backend, and database successfully.
-- [ ] Verify the M1 exit gate and document local setup instructions.
+- [x] Create the monorepo directory structure and baseline README.
+- [x] Scaffold the React/Vite/TypeScript frontend.
+- [x] Scaffold the modular Spring Boot backend.
+- [x] Configure native PostgreSQL and Flyway for local development.
+- [x] Configure Flyway and create the initial migration convention.
+- [x] Add environment configuration and safe local development defaults.
+- [x] Configure formatting, linting, type checking, and baseline test runners.
+- [x] Add the backend health-check endpoint and frontend application shell.
+- [x] Add GitHub Actions for build, lint, type check, and test validation.
+- [x] Verify a fresh checkout starts frontend, backend, and database successfully.
+- [x] Verify the M1 exit gate and document local setup instructions.
 
 ### 14.3 M2 — Authentication and User Management
 
-- [ ] Implement user, role, account-status, and profile persistence.
-- [ ] Implement registration with validation and secure password hashing.
-- [ ] Implement login, logout, short-lived access tokens, and refresh-session rotation/revocation.
-- [ ] Implement backend authentication filters and role-based authorization.
-- [ ] Implement admin provisioning and secure collector creation/invitation.
-- [ ] Implement current-user profile retrieval and updates.
-- [ ] Implement frontend session handling and protected role-based routes.
-- [ ] Add ownership, privilege-escalation, token, and session-security tests.
-- [ ] Verify unauthorized and cross-role access is rejected.
-- [ ] Verify the M2 exit gate.
+- [x] Implement user, role, account-status, and profile persistence.
+- [x] Implement registration with validation and secure password hashing.
+- [x] Implement login, logout, short-lived access tokens, and refresh-session rotation/revocation.
+- [x] Implement backend authentication filters and role-based authorization.
+- [x] Implement admin provisioning and secure collector creation/invitation.
+- [x] Implement current-user profile retrieval and updates.
+- [x] Implement frontend session handling and protected role-based routes.
+- [x] Add ownership, privilege-escalation, token, and session-security tests.
+- [x] Verify unauthorized and cross-role access is rejected.
+- [x] Verify the M2 exit gate.
 
 ### 14.4 M3 — Waste Pickup Request Management
 
-- [ ] Create service-zone and waste-category migrations, seed data, and APIs.
-- [ ] Implement pickup-request entity, public request code, validation, and persistence.
-- [ ] Implement address, zone, quantity/unit, preferred-date, notes, and status handling.
-- [ ] Implement resident create, list, detail, history, and eligible-cancellation APIs.
-- [ ] Build the resident dashboard, request form, confirmation, detail, and history views.
-- [ ] Add validation, error, loading, empty, and refresh-state handling.
-- [ ] Add repository, service, API, authorization, and real-database integration tests.
-- [ ] Verify persisted requests survive browser refresh and cannot be read by other residents.
-- [ ] Verify the M3 exit gate.
+- [x] Create service-zone and waste-category migrations, seed data, and APIs.
+- [x] Implement pickup-request entity, public request code, validation, and persistence.
+- [x] Implement address, zone, quantity/unit, preferred-date, notes, and status handling.
+- [x] Implement resident create, list, detail, history, and eligible-cancellation APIs.
+- [x] Build the resident dashboard, request form, confirmation, detail, and history views.
+- [x] Add validation, error, loading, empty, and refresh-state handling.
+- [x] Add repository, service, API, authorization, and real-database integration tests.
+- [x] Verify persisted requests survive browser refresh and cannot be read by other residents.
+- [x] Verify the M3 exit gate.
 
 ### 14.5 M4 — Automatic Grouping Engine
 
-- [ ] Implement grouping eligibility queries and zone/date partitioning.
-- [ ] Implement draft grouping suggestions without changing committed memberships.
-- [ ] Implement administrator review and manual group adjustment.
-- [ ] Implement atomic group confirmation with revalidation.
-- [ ] Add active-membership uniqueness constraints and membership history.
-- [ ] Record status changes and audit events during confirmation.
-- [ ] Add transaction, locking, duplicate-prevention, and concurrent-confirmation tests.
-- [ ] Verify the grouping service can later support capacity or GPS strategies.
-- [ ] Verify the M4 exit gate.
+- [x] Implement grouping eligibility queries and zone/date partitioning.
+- [x] Implement draft grouping suggestions without changing committed memberships.
+- [x] Implement administrator review and manual group adjustment.
+- [x] Implement atomic group confirmation with revalidation.
+- [x] Add active-membership uniqueness constraints and membership history.
+- [x] Record status changes and audit events during confirmation.
+- [x] Add transaction, locking, duplicate-prevention, and concurrent-confirmation tests.
+- [x] Verify the grouping service can later support capacity or GPS strategies.
+- [x] Verify the M4 exit gate.
 
 ### 14.6 M5 — Scheduling and Administrator Operations
 

@@ -1,8 +1,9 @@
 import { FormEvent, useCallback, useEffect, useMemo, useState } from "react";
-import { Link, NavLink, Navigate, Route, Routes, useNavigate } from "react-router-dom";
+import { Link, NavLink, Navigate, Route, Routes, useNavigate, useParams } from "react-router-dom";
 
 const API_URL = import.meta.env.VITE_API_URL ?? "http://localhost:8080/api/v1";
 const TOKEN_KEY = "wastecollect.tokens";
+const ROLE_KEY = "wastecollect.role";
 
 type Tokens = { accessToken: string; refreshToken: string };
 type UserProfile = { id: string; email: string; displayName: string; role: string; status: string };
@@ -17,7 +18,13 @@ type Pickup = {
   unit: string;
   preferredDate: string;
   status: string;
+  address?: string;
+  notes?: string | null;
 };
+type HistoryItem = { previousStatus: string | null; nextStatus: string; reason: string; createdAt: string };
+type Candidate = { id: string; publicCode: string; categoryName: string; address: string; quantity: number; unit: string };
+type GroupSuggestion = { zoneId: string; zoneName: string; preferredDate: string; requests: Candidate[] };
+type CollectionGroup = GroupSuggestion & { id: string; publicCode: string; status: string };
 
 function readTokens(): Tokens | null {
   try {
@@ -28,6 +35,24 @@ function readTokens(): Tokens | null {
   } catch {
     sessionStorage.removeItem(TOKEN_KEY);
     return null;
+  }
+}
+
+async function revokeSession(onLogout: () => void, navigate: ReturnType<typeof useNavigate>) {
+  const tokens = readTokens();
+  try {
+    if (tokens?.refreshToken) {
+      await fetch(`${API_URL}/auth/logout`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ refreshToken: tokens.refreshToken }),
+      });
+    }
+  } finally {
+    sessionStorage.removeItem(TOKEN_KEY);
+    sessionStorage.removeItem(ROLE_KEY);
+    onLogout();
+    navigate("/login", { replace: true });
   }
 }
 
@@ -46,7 +71,7 @@ function localToday() {
   return new Date(now.getTime() - offset).toISOString().slice(0, 10);
 }
 
-function Login({ onLogin }: { onLogin: () => void }) {
+function Login({ onLogin }: { onLogin: (role: string) => void }) {
   const navigate = useNavigate();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -68,10 +93,17 @@ function Login({ onLogin }: { onLogin: () => void }) {
       const tokens = (await response.json()) as Tokens;
       if (!tokens.accessToken || !tokens.refreshToken) throw new Error("The server returned an invalid sign-in response.");
       sessionStorage.setItem(TOKEN_KEY, JSON.stringify(tokens));
-      onLogin();
-      navigate("/account", { replace: true });
+      const profileResponse = await fetch(`${API_URL}/users/me`, { headers: { Authorization: `Bearer ${tokens.accessToken}` } });
+      if (!profileResponse.ok) throw new Error("Unable to load your account.");
+      const profile = (await profileResponse.json()) as UserProfile;
+      sessionStorage.setItem(ROLE_KEY, profile.role);
+      onLogin(profile.role);
+      navigate(profile.role === "ADMIN" ? "/admin/groups" : "/account", { replace: true });
     } catch (exception) {
-      setError(exception instanceof Error ? exception.message : "Unable to sign in. Please try again.");
+      const message = exception instanceof Error ? exception.message : "";
+      setError(message === "Failed to fetch"
+        ? "The service is unreachable. Make sure the backend is running, then try again."
+        : message || "Unable to sign in. Please try again.");
     } finally {
       setBusy(false);
     }
@@ -118,11 +150,7 @@ function Account({ onLogout }: { onLogout: () => void }) {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
 
-  const logout = useCallback(() => {
-    sessionStorage.removeItem(TOKEN_KEY);
-    onLogout();
-    navigate("/login", { replace: true });
-  }, [navigate, onLogout]);
+  const logout = useCallback(() => revokeSession(onLogout, navigate), [navigate, onLogout]);
 
   const loadWorkspace = useCallback(async () => {
     if (!tokens) return;
@@ -137,7 +165,7 @@ function Account({ onLogout }: { onLogout: () => void }) {
         fetch(`${API_URL}/requests/my`, { headers: authHeaders }),
       ]);
       if (profileResponse.status === 401 || profileResponse.status === 403) {
-        logout();
+        void logout();
         return;
       }
       if (![profileResponse, zonesResponse, categoriesResponse, requestsResponse].every((response) => response.ok)) {
@@ -169,7 +197,7 @@ function Account({ onLogout }: { onLogout: () => void }) {
           <h1>{profile ? `Hello, ${profile.displayName}.` : "Your pickups"}</h1>
           <p className="lead">Schedule a collection and review your recent requests.</p>
         </div>
-        <button className="button ghost" type="button" onClick={logout}>Sign out</button>
+        <button className="button ghost" type="button" onClick={() => void logout()}>Sign out</button>
       </section>
       {error && <p className="form-message error page-message" role="alert">{error}</p>}
       {loading ? <div className="loading-card" role="status"><span className="spinner dark" /> Loading your workspace…</div> : (
@@ -185,7 +213,7 @@ function Account({ onLogout }: { onLogout: () => void }) {
             ) : (
               <ul className="request-list">
                 {requests.map((request) => <li key={request.id}>
-                  <div><strong>{request.categoryName}</strong><span>{request.zoneName} · {request.quantity} {request.unit.toLowerCase()}</span></div>
+                  <Link to={`/requests/${request.id}`}><strong>{request.categoryName}</strong><span>{request.zoneName} · {request.quantity} {request.unit.toLowerCase()}</span></Link>
                   <div className="request-meta"><span className={`status ${request.status.toLowerCase()}`}>{request.status}</span><time>{request.preferredDate}</time></div>
                 </li>)}
               </ul>
@@ -195,6 +223,97 @@ function Account({ onLogout }: { onLogout: () => void }) {
       )}
     </main>
   );
+}
+
+function RequestDetail() {
+  const { id } = useParams();
+  const navigate = useNavigate();
+  const tokens = readTokens();
+  const accessToken = tokens?.accessToken;
+  const [request, setRequest] = useState<Pickup | null>(null);
+  const [history, setHistory] = useState<HistoryItem[]>([]);
+  const [error, setError] = useState("");
+  const [busy, setBusy] = useState(false);
+  const load = useCallback(async () => {
+    if (!accessToken || !id) return;
+    const headers = { Authorization: `Bearer ${accessToken}` };
+    try {
+      const [requestResponse, historyResponse] = await Promise.all([fetch(`${API_URL}/requests/${id}`, { headers }), fetch(`${API_URL}/requests/${id}/history`, { headers })]);
+      if (!requestResponse.ok || !historyResponse.ok) throw new Error(await apiError(requestResponse, "Unable to load request."));
+      setRequest(await requestResponse.json()); setHistory(await historyResponse.json());
+    } catch (exception) { setError(exception instanceof Error ? exception.message : "Unable to load request."); }
+  }, [accessToken, id]);
+  useEffect(() => { void load(); }, [load]);
+  if (!tokens) return <Navigate to="/login" replace />;
+  async function cancel() {
+    if (!request || !accessToken) return; setBusy(true); setError("");
+    try {
+      const response = await fetch(`${API_URL}/requests/${request.id}/cancel`, { method: "PATCH", headers: { Authorization: `Bearer ${accessToken}` } });
+      if (!response.ok) throw new Error(await apiError(response, "Unable to cancel request."));
+      await load();
+    } catch (exception) { setError(exception instanceof Error ? exception.message : "Unable to cancel request."); }
+    finally { setBusy(false); }
+  }
+  return <main className="info-page"><button className="back-link detail-back" onClick={() => navigate("/account")}>← Back to workspace</button>{error && <p className="form-message error">{error}</p>}{!request ? <div className="loading-card"><span className="spinner dark" /> Loading request…</div> : <><p className="eyebrow">Pickup request</p><h1>{request.publicCode}</h1><div className="detail-grid"><section className="content-card"><h2>Collection details</h2><dl><div><dt>Status</dt><dd><span className="status">{request.status}</span></dd></div><div><dt>Waste</dt><dd>{request.categoryName} · {request.quantity} {request.unit.toLowerCase()}</dd></div><div><dt>Zone and date</dt><dd>{request.zoneName} · {request.preferredDate}</dd></div><div><dt>Address</dt><dd>{request.address}</dd></div>{request.notes && <div><dt>Notes</dt><dd>{request.notes}</dd></div>}</dl>{["PENDING","GROUPED","SCHEDULED"].includes(request.status) && <button className="button danger" disabled={busy} onClick={() => void cancel()}>{busy ? "Cancelling…" : "Cancel request"}</button>}</section><section className="content-card"><h2>Status history</h2><ol className="timeline">{history.map((item,index) => <li key={`${item.createdAt}-${index}`}><span /><div><strong>{item.nextStatus}</strong><p>{item.reason}</p><time>{new Date(item.createdAt).toLocaleString()}</time></div></li>)}</ol></section></div></>}</main>;
+}
+
+function Register() {
+  const navigate = useNavigate();
+  const [error, setError] = useState("");
+  const [busy, setBusy] = useState(false);
+  async function submit(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault(); setBusy(true); setError("");
+    const form = new FormData(event.currentTarget);
+    try {
+      const response = await fetch(`${API_URL}/auth/register`, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ displayName: form.get("displayName"), email: form.get("email"), password: form.get("password") }) });
+      if (!response.ok) throw new Error(await apiError(response, "Unable to create account."));
+      navigate("/login", { replace: true });
+    } catch (exception) { setError(exception instanceof Error ? exception.message : "Unable to create account."); }
+    finally { setBusy(false); }
+  }
+  return <main className="auth-layout"><section className="auth-intro"><p className="eyebrow">Join WasteCollect</p><h1>Create your resident account.</h1><p className="lead">Request collections and follow their progress from one place.</p></section><section className="auth-card"><div><p className="eyebrow">Resident registration</p><h2>Create account</h2></div><form className="form-stack" onSubmit={submit}><label htmlFor="register-name">Display name</label><input id="register-name" name="displayName" autoComplete="name" maxLength={120} required /><label htmlFor="register-email">Email address</label><input id="register-email" name="email" type="email" autoComplete="email" required /><label htmlFor="register-password">Password</label><input id="register-password" name="password" type="password" autoComplete="new-password" minLength={12} maxLength={128} required /><small className="field-help">Use at least 12 characters.</small>{error && <p className="form-message error" role="alert">{error}</p>}<button className="button primary full" disabled={busy}>{busy ? "Creating…" : "Create account"}</button></form><Link className="back-link" to="/login">Already registered? Sign in</Link></section></main>;
+}
+
+function AdminGroups({ onLogout }: { onLogout: () => void }) {
+  const navigate = useNavigate();
+  const tokens = readTokens();
+  const accessToken = tokens?.accessToken;
+  const [suggestions, setSuggestions] = useState<GroupSuggestion[]>([]);
+  const [groups, setGroups] = useState<CollectionGroup[]>([]);
+  const [selected, setSelected] = useState<Record<string, boolean>>({});
+  const [message, setMessage] = useState("");
+  const [loading, setLoading] = useState(true);
+  const [busyKey, setBusyKey] = useState("");
+  const logout = useCallback(() => revokeSession(onLogout, navigate), [navigate, onLogout]);
+  const load = useCallback(async () => {
+    if (!accessToken) return;
+    setLoading(true); setMessage("");
+    const headers = { Authorization: `Bearer ${accessToken}` };
+    try {
+      const [suggestionsResponse, groupsResponse] = await Promise.all([fetch(`${API_URL}/admin/groups/suggestions`, { method: "POST", headers }), fetch(`${API_URL}/admin/groups`, { headers })]);
+      if (suggestionsResponse.status === 401 || suggestionsResponse.status === 403) { void logout(); return; }
+      if (!suggestionsResponse.ok || !groupsResponse.ok) throw new Error("Unable to load grouping workspace.");
+      const nextSuggestions = await suggestionsResponse.json() as GroupSuggestion[];
+      setSuggestions(nextSuggestions); setGroups(await groupsResponse.json());
+      setSelected(Object.fromEntries(nextSuggestions.flatMap(suggestion => suggestion.requests.map(request => [request.id, true]))));
+    } catch (exception) { setMessage(exception instanceof Error ? exception.message : "Unable to load grouping workspace."); }
+    finally { setLoading(false); }
+  }, [accessToken, logout]);
+  useEffect(() => { void load(); }, [load]);
+  if (!tokens || sessionStorage.getItem(ROLE_KEY) !== "ADMIN") return <Navigate to="/login" replace />;
+  async function confirm(suggestion: GroupSuggestion) {
+    if (!accessToken) return;
+    const requestIds = suggestion.requests.filter(request => selected[request.id]).map(request => request.id);
+    if (!requestIds.length) { setMessage("Select at least one request for the group."); return; }
+    setBusyKey(`${suggestion.zoneId}:${suggestion.preferredDate}`); setMessage("");
+    try {
+      const response = await fetch(`${API_URL}/admin/groups`, { method: "POST", headers: { "Content-Type": "application/json", Authorization: `Bearer ${accessToken}` }, body: JSON.stringify({ zoneId: suggestion.zoneId, preferredDate: suggestion.preferredDate, requestIds }) });
+      if (!response.ok) throw new Error(await apiError(response, "Unable to confirm group."));
+      const group = await response.json() as CollectionGroup; setMessage(`${group.publicCode} confirmed with ${group.requests.length} request(s).`); await load();
+    } catch (exception) { setMessage(exception instanceof Error ? exception.message : "Unable to confirm group."); }
+    finally { setBusyKey(""); }
+  }
+  return <main className="workspace"><section className="workspace-heading"><div><p className="eyebrow">Administrator workspace</p><h1>Grouping review</h1><p className="lead">Review zone-and-date suggestions, adjust membership, and confirm atomically.</p></div><button className="button ghost" onClick={logout}>Sign out</button></section>{message && <p className="form-message success page-message" role="status">{message}</p>}{loading ? <div className="loading-card"><span className="spinner dark" /> Loading grouping candidates…</div> : <div className="workspace-grid"><section className="content-card"><div className="section-heading"><span className="step">01</span><div><h2>Draft suggestions</h2><p>Suggestions do not change stored requests.</p></div></div>{suggestions.length === 0 ? <div className="empty-state"><span>✓</span><p>No eligible requests</p><small>Pending requests will appear by zone and date.</small></div> : <div className="suggestion-list">{suggestions.map(suggestion => { const key=`${suggestion.zoneId}:${suggestion.preferredDate}`; return <article key={key} className="suggestion"><header><div><strong>{suggestion.zoneName}</strong><span>{suggestion.preferredDate}</span></div><span>{suggestion.requests.length} request(s)</span></header>{suggestion.requests.map(request => <label className="candidate" key={request.id}><input type="checkbox" checked={Boolean(selected[request.id])} onChange={event => setSelected(current => ({...current,[request.id]:event.target.checked}))} /><span><strong>{request.publicCode} · {request.categoryName}</strong><small>{request.address} · {request.quantity} {request.unit.toLowerCase()}</small></span></label>)}<button className="button primary full" disabled={busyKey===key} onClick={() => void confirm(suggestion)}>{busyKey===key ? "Confirming…" : "Confirm selected group"}</button></article>})}</div>}</section><section className="content-card"><div className="section-heading"><span className="step">02</span><div><h2>Confirmed groups</h2><p>Committed memberships and status.</p></div></div>{groups.length===0 ? <div className="empty-state"><span>♻</span><p>No confirmed groups yet</p></div> : <ul className="request-list">{groups.map(group => <li key={group.id}><div><strong>{group.publicCode}</strong><span>{group.zoneName} · {group.requests.length} stop(s)</span></div><div className="request-meta"><span className="status">{group.status}</span><time>{group.preferredDate}</time></div></li>)}</ul>}</section></div>}</main>;
 }
 
 function PickupForm({ zones, categories, token, onCreated }: { zones: Zone[]; categories: Category[]; token: string; onCreated: () => Promise<void> }) {
@@ -268,15 +387,19 @@ function InfoPage({ eyebrow, title, description, children }: { eyebrow: string; 
 }
 
 export default function App() {
-  const [authenticated, setAuthenticated] = useState(() => Boolean(readTokens()));
+  const [role, setRole] = useState(() => sessionStorage.getItem(ROLE_KEY));
+  const authenticated = Boolean(readTokens() && role);
   return <div className="app-shell">
-    <header className="topbar"><Link className="brand" to="/"><span aria-hidden="true">♻</span> WasteCollect</Link><nav aria-label="Primary navigation"><NavLink to="/how-it-works">How it works</NavLink><NavLink to="/waste-information">Waste guide</NavLink><NavLink className="nav-cta" to={authenticated ? "/account" : "/login"}>{authenticated ? "My account" : "Sign in"}</NavLink></nav></header>
+    <header className="topbar"><Link className="brand" to="/"><span aria-hidden="true">♻</span> WasteCollect</Link><nav aria-label="Primary navigation"><NavLink to="/how-it-works">How it works</NavLink><NavLink to="/waste-information">Waste guide</NavLink>{!authenticated && <NavLink to="/register">Register</NavLink>}<NavLink className="nav-cta" to={role === "ADMIN" ? "/admin/groups" : authenticated ? "/account" : "/login"}>{authenticated ? "My workspace" : "Sign in"}</NavLink></nav></header>
     <Routes>
       <Route path="/" element={<Home />} />
       <Route path="/how-it-works" element={<InfoPage eyebrow="A simple three-step service" title="From request to collection." description="A clear workflow keeps residents informed and collections organized."><article><span>01</span><h2>Submit your request</h2><p>Choose a category, service zone, date, and collection address.</p></article><article><span>02</span><h2>We coordinate</h2><p>Your request enters the collection queue for scheduling.</p></article><article><span>03</span><h2>Waste is collected</h2><p>Track the request from your resident workspace.</p></article></InfoPage>} />
       <Route path="/waste-information" element={<InfoPage eyebrow="Sort smarter" title="Know what goes where." description="Select the matching category when you create a pickup request."><article><span className="category-icon">●</span><h2>General waste</h2><p>Everyday non-recyclable household items. Measured by bag.</p></article><article><span className="category-icon mint">●</span><h2>Recyclables</h2><p>Clean paper, plastic, glass, and metal. Measured by bag.</p></article><article><span className="category-icon gold">●</span><h2>Organic waste</h2><p>Food scraps and compostable material. Measured in kilograms.</p></article></InfoPage>} />
-      <Route path="/login" element={authenticated ? <Navigate to="/account" replace /> : <Login onLogin={() => setAuthenticated(true)} />} />
-      <Route path="/account" element={<Account onLogout={() => setAuthenticated(false)} />} />
+      <Route path="/register" element={authenticated ? <Navigate to={role === "ADMIN" ? "/admin/groups" : "/account"} replace /> : <Register />} />
+      <Route path="/login" element={authenticated ? <Navigate to={role === "ADMIN" ? "/admin/groups" : "/account"} replace /> : <Login onLogin={nextRole => setRole(nextRole)} />} />
+      <Route path="/account" element={<Account onLogout={() => setRole(null)} />} />
+      <Route path="/requests/:id" element={<RequestDetail />} />
+      <Route path="/admin/groups" element={<AdminGroups onLogout={() => setRole(null)} />} />
       <Route path="*" element={<main className="not-found"><p className="eyebrow">404</p><h1>That page wandered off.</h1><p className="lead">Let’s get you back to a cleaner route.</p><Link className="button primary" to="/">Return home</Link></main>} />
     </Routes>
     <footer><span>© 2026 WasteCollect</span><span>Cleaner neighborhoods, one pickup at a time.</span></footer>

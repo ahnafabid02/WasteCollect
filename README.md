@@ -30,6 +30,9 @@ WasteCollect is a waste collection management platform for residents, administra
 2. If you override the defaults, set the matching `DATABASE_URL`, `DATABASE_USERNAME`, and
    `DATABASE_PASSWORD` environment variables shown in `.env.example`.
 
+   To provision the first administrator, set `APP_BOOTSTRAP_ADMIN_EMAIL` and an
+   `APP_BOOTSTRAP_ADMIN_PASSWORD` of at least 12 characters before the first backend start.
+
 3. Start the backend:
 
    ```powershell

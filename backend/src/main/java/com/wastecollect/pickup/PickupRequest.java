@@ -35,5 +35,6 @@ public class PickupRequest {
     public BigDecimal getQuantity() { return quantity; } public String getUnit() { return unit; }
     public LocalDate getPreferredDate() { return preferredDate; } public String getNotes() { return notes; }
     public PickupStatus getStatus() { return status; } public Instant getCreatedAt() { return createdAt; }
-    public void cancel() { if (status != PickupStatus.PENDING && status != PickupStatus.GROUPED && status != PickupStatus.SCHEDULED) throw new IllegalStateException("Request cannot be cancelled"); status = PickupStatus.CANCELLED; updatedAt = Instant.now(); }
+    public void markGrouped() { if (status != PickupStatus.PENDING) throw new IllegalStateException("Only pending requests can be grouped"); status = PickupStatus.GROUPED; updatedAt = Instant.now(); }
+    public void cancel() { if (status != PickupStatus.PENDING) throw new IllegalStateException("Only pending requests can be cancelled"); status = PickupStatus.CANCELLED; updatedAt = Instant.now(); }
 }

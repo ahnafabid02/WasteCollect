@@ -8,7 +8,7 @@ WasteCollect uses a modular monolith:
 - Spring Boot REST backend
 - PostgreSQL system of record
 - Flyway schema migrations
-- Docker Compose local dependencies
+- Native PostgreSQL local dependency with scripted role/database setup
 - GitHub Actions CI
 
 The backend modules are `auth/users`, `servicearea`, `wastecategory`, `pickup`, `grouping`, `scheduling`, `collector`, `notification`, `reporting`, `integration`, and `common`.
