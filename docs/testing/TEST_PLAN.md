@@ -6,6 +6,7 @@
 - A real PostgreSQL concurrency test runs two overlapping group confirmations and verifies exactly one active membership is committed.
 - Migration tests run Flyway through V4 against native PostgreSQL; no container runtime is required.
 - Frontend lint, TypeScript checks, component tests, and production build are part of the verification gate.
+- The signed-in workspace regression test verifies profile/catalog data renders, the loading indicator clears, and rerenders do not repeat the four initial API requests.
 - Through M4, resident cancellation is limited to `PENDING` requests. Later operational cancellation and membership/count reconciliation belongs to the scheduling workflow introduced after M4.
 
 ## Test layers

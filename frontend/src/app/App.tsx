@@ -143,6 +143,7 @@ function Login({ onLogin }: { onLogin: (role: string) => void }) {
 function Account({ onLogout }: { onLogout: () => void }) {
   const navigate = useNavigate();
   const tokens = readTokens();
+  const accessToken = tokens?.accessToken;
   const [profile, setProfile] = useState<UserProfile | null>(null);
   const [zones, setZones] = useState<Zone[]>([]);
   const [categories, setCategories] = useState<Category[]>([]);
@@ -153,11 +154,11 @@ function Account({ onLogout }: { onLogout: () => void }) {
   const logout = useCallback(() => revokeSession(onLogout, navigate), [navigate, onLogout]);
 
   const loadWorkspace = useCallback(async () => {
-    if (!tokens) return;
+    if (!accessToken) return;
     setLoading(true);
     setError("");
     try {
-      const authHeaders = { Authorization: `Bearer ${tokens.accessToken}` };
+      const authHeaders = { Authorization: `Bearer ${accessToken}` };
       const [profileResponse, zonesResponse, categoriesResponse, requestsResponse] = await Promise.all([
         fetch(`${API_URL}/users/me`, { headers: authHeaders }),
         fetch(`${API_URL}/zones`),
@@ -183,7 +184,7 @@ function Account({ onLogout }: { onLogout: () => void }) {
     } finally {
       setLoading(false);
     }
-  }, [logout, tokens]);
+  }, [logout, accessToken]);
 
   useEffect(() => { void loadWorkspace(); }, [loadWorkspace]);
 
@@ -388,6 +389,7 @@ function InfoPage({ eyebrow, title, description, children }: { eyebrow: string; 
 
 export default function App() {
   const [role, setRole] = useState(() => sessionStorage.getItem(ROLE_KEY));
+  const handleLogout = useCallback(() => setRole(null), []);
   const authenticated = Boolean(readTokens() && role);
   return <div className="app-shell">
     <header className="topbar"><Link className="brand" to="/"><span aria-hidden="true">♻</span> WasteCollect</Link><nav aria-label="Primary navigation"><NavLink to="/how-it-works">How it works</NavLink><NavLink to="/waste-information">Waste guide</NavLink>{!authenticated && <NavLink to="/register">Register</NavLink>}<NavLink className="nav-cta" to={role === "ADMIN" ? "/admin/groups" : authenticated ? "/account" : "/login"}>{authenticated ? "My workspace" : "Sign in"}</NavLink></nav></header>
@@ -397,9 +399,9 @@ export default function App() {
       <Route path="/waste-information" element={<InfoPage eyebrow="Sort smarter" title="Know what goes where." description="Select the matching category when you create a pickup request."><article><span className="category-icon">●</span><h2>General waste</h2><p>Everyday non-recyclable household items. Measured by bag.</p></article><article><span className="category-icon mint">●</span><h2>Recyclables</h2><p>Clean paper, plastic, glass, and metal. Measured by bag.</p></article><article><span className="category-icon gold">●</span><h2>Organic waste</h2><p>Food scraps and compostable material. Measured in kilograms.</p></article></InfoPage>} />
       <Route path="/register" element={authenticated ? <Navigate to={role === "ADMIN" ? "/admin/groups" : "/account"} replace /> : <Register />} />
       <Route path="/login" element={authenticated ? <Navigate to={role === "ADMIN" ? "/admin/groups" : "/account"} replace /> : <Login onLogin={nextRole => setRole(nextRole)} />} />
-      <Route path="/account" element={<Account onLogout={() => setRole(null)} />} />
+      <Route path="/account" element={<Account onLogout={handleLogout} />} />
       <Route path="/requests/:id" element={<RequestDetail />} />
-      <Route path="/admin/groups" element={<AdminGroups onLogout={() => setRole(null)} />} />
+      <Route path="/admin/groups" element={<AdminGroups onLogout={handleLogout} />} />
       <Route path="*" element={<main className="not-found"><p className="eyebrow">404</p><h1>That page wandered off.</h1><p className="lead">Let’s get you back to a cleaner route.</p><Link className="button primary" to="/">Return home</Link></main>} />
     </Routes>
     <footer><span>© 2026 WasteCollect</span><span>Cleaner neighborhoods, one pickup at a time.</span></footer>
